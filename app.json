@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "StudyGrow",
+    "slug": "StudyGrow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "StudyGrow potřebuje přístup k fotkám, aby z nich přečetl tvé poznámky.",
+          "cameraPermission": "StudyGrow potřebuje fotoaparát, abys mohl vyfotit sešit a převést ho na poznámky."
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "StudyGrow",
+      "shortName": "StudyGrow",
+      "themeColor": "#16A34A",
+      "backgroundColor": "#F4F7F5",
+      "display": "standalone"
+    },
+    "experiments": {
+      "baseUrl": "/studygrow"
+    }
+  }
+}
