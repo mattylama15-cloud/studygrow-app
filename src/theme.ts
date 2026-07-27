@@ -58,17 +58,43 @@ function readSavedTheme(): ThemePreset {
 const ACTIVE = readSavedTheme();
 const P = ACTIVE.primary;
 
-// Appka je natrvalo tmavá — barva z Nastavení mění jen akcent, ne podklad.
-// Světlá paleta je uložená v `svetla-verze-zaloha.md` vedle projektu.
-export const isDark = true;
+// Režim čteme při startu; přepnutí v Nastavení uloží volbu a appku přenačte
+// (stejně jako změna barvy). 'system' = podle světlého/tmavého režimu telefonu.
+function readSavedMode(): 'light' | 'dark' {
+  let mode: string | null = null;
+  try {
+    if (typeof localStorage !== 'undefined') mode = localStorage.getItem('studygrow:mode');
+  } catch {}
+  if (mode === 'light' || mode === 'dark') return mode;
+  // 'system' nebo nic → řídíme se telefonem/prohlížečem
+  try {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+  } catch {}
+  return 'dark';
+}
 
-const txt = ACTIVE.textColor || '#E8ECF1';
-const N = {
+export const isDark = readSavedMode() === 'dark';
+
+// Barvy s tmavým motivem (černá+stříbrná/zlatá) dávají smysl jen ve tmě —
+// ve světlém režimu je akcent stejný, ale text na tlačítku musí být bílý.
+const txt = isDark ? (ACTIVE.textColor || '#E8ECF1') : '#0F172A';
+
+const dark = {
   bg: '#0B0B0F', bgAlt: '#1D2129', surface: '#14161C', surfaceMuted: '#1D2129',
   text: txt, textMuted: shade(txt, -0.42), textFaint: shade(txt, -0.6),
   border: '#252A33', borderStrong: '#3A3A46',
 };
-const soft = (c: string) => shade(c, -0.55);
+// Světlá paleta A — Clean & Calm (mléčně bílá s nádechem zelené).
+const light = {
+  bg: '#F4F7F5', bgAlt: '#ECF1EE', surface: '#FFFFFF', surfaceMuted: '#F8FAF9',
+  text: '#0F172A', textMuted: '#64748B', textFaint: '#94A3B8',
+  border: '#E2E8F0', borderStrong: '#CBD5E1',
+};
+const N = isDark ? dark : light;
+// Měkký nádech akcentu: ve tmě ztmavíme, ve světle naopak hodně zesvětlíme.
+const soft = (c: string) => (isDark ? shade(c, -0.55) : shade(c, 0.85));
 
 export const colors = {
   bg: N.bg,

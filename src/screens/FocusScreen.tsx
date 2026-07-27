@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, Pressable, ScrollView, Modal, TextInput, Keyboa
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { colors, font, radius, spacing, shadow, gradients } from '../theme';
-import { Button, Card, ScreenScroll } from '../components/ui';
+import { Button, Card, ScreenScroll, StackHeader } from '../components/ui';
 import { ProgressRing } from '../components/ProgressRing';
 import { GrowthGraphic, getTheme } from '../components/GrowthGraphics';
 import { useApp } from '../state/AppContext';
 import { useFocusTimer } from '../state/FocusTimer';
+import { useNav } from '../navigation/Navigator';
 import { formatClock, formatMinutes, todayKey } from '../utils';
 import { useT } from '../i18n';
 
@@ -21,6 +22,7 @@ export function FocusScreen() {
   const { state, addSession, updateSettings } = useApp();
   const { state: timer, remaining, start: startTimer, pause: pauseTimer, resume: resumeTimer,
     giveUp: giveUpTimer, reset: resetTimer } = useFocusTimer();
+  const nav = useNav();
   const paused = timer.pausedLeft != null;
   const { t, lang } = useT();
   const [minutes, setMinutes] = useState(25);
@@ -81,13 +83,12 @@ export function FocusScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <StackHeader
+        title={t('focus.title')}
+        subtitle={status === 'running' ? t('focus.subRunning') : t('focus.subIdle')}
+        onBack={() => nav.setTab('Home')}
+      />
       <ScreenScroll>
-        <View style={styles.headerWrap}>
-          <Text style={styles.h1}>{t('focus.title')}</Text>
-          <Text style={styles.sub}>
-            {status === 'running' ? t('focus.subRunning') : t('focus.subIdle')}
-          </Text>
-        </View>
 
         {/* Timer hero */}
         <View style={styles.heroWrap}>

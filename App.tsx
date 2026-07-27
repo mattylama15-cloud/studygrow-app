@@ -70,6 +70,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 28,
     borderWidth: 8,
-    borderColor: '#000000',
+    borderColor: '#ffffff',
   },
 });

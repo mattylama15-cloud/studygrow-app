@@ -90,6 +90,7 @@ export type Settings = {
   hapticsEnabled: boolean;
   focusTheme: string; // which thing builds/grows during focus (house, car, peapod, cake, tree)
   themeColor: string; // main app color (hex), changeable in-app
+  themeMode?: 'light' | 'dark' | 'system'; // světlý / tmavý režim; výchozí 'dark'
   adminPassHash: string | null; // legacy, kept for state migration
   onboardingDone: boolean; // first-run tour finished
 };

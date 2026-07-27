@@ -19,9 +19,7 @@ export function SettingsScreen() {
   const [resetOpen, setResetOpen] = useState(false);
   const [themeToast, setThemeToast] = useState<string | null>(null);
 
-  const setTheme = (id: string) => {
-    updateSettings({ themeColor: id });
-    try { if (typeof localStorage !== 'undefined') localStorage.setItem('studygrow:theme', id); } catch {}
+  const applyAndReload = () => {
     if (Platform.OS === 'web') {
       setTimeout(() => { try { (window as any).location.reload(); } catch {} }, 250);
     } else {
@@ -29,6 +27,25 @@ export function SettingsScreen() {
       setTimeout(() => setThemeToast(null), 3500);
     }
   };
+
+  const setTheme = (id: string) => {
+    updateSettings({ themeColor: id });
+    try { if (typeof localStorage !== 'undefined') localStorage.setItem('studygrow:theme', id); } catch {}
+    applyAndReload();
+  };
+
+  const setMode = (mode: 'light' | 'dark' | 'system') => {
+    if ((settings.themeMode || 'dark') === mode) return;
+    updateSettings({ themeMode: mode });
+    try { if (typeof localStorage !== 'undefined') localStorage.setItem('studygrow:mode', mode); } catch {}
+    applyAndReload();
+  };
+
+  const MODES: { id: 'light' | 'dark' | 'system'; icon: any }[] = [
+    { id: 'light', icon: 'sunny-outline' },
+    { id: 'dark', icon: 'moon-outline' },
+    { id: 'system', icon: 'phone-portrait-outline' },
+  ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -41,6 +58,20 @@ export function SettingsScreen() {
           <TextInput value={name} onChangeText={(v) => { setName(v); updateSettings({ name: v }); }}
             placeholder={t('settings.namePlaceholder')} placeholderTextColor={colors.textFaint} style={styles.input} />
         </Card>
+
+        {/* Světlý / tmavý režim */}
+        <Text style={styles.section}>{t('settings.mode')}</Text>
+        <View style={styles.segment}>
+          {MODES.map((m) => {
+            const active = (settings.themeMode || 'dark') === m.id;
+            return (
+              <Pressable key={m.id} onPress={() => setMode(m.id)} style={[styles.segItem, active && styles.segItemActive]}>
+                <Ionicons name={m.icon} size={16} color={active ? colors.onPrimary : colors.textMuted} />
+                <Text style={[styles.segText, active && { color: colors.onPrimary }]}>{t(`settings.mode.${m.id}`)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         {/* Appearance color */}
         <Text style={styles.section}>{t('settings.appColor')}</Text>
@@ -138,6 +169,11 @@ const styles = StyleSheet.create({
   themeCard: { width: '31%', alignItems: 'center', paddingVertical: 8, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   themeCardActive: { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primarySoft },
   themeLabel: { fontSize: font.tiny, fontWeight: '700', color: colors.text, marginTop: 2 },
+  segment: { flexDirection: 'row', backgroundColor: colors.surfaceMuted, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: 3, gap: 3 },
+  segItem: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 9, borderRadius: radius.sm },
+  segItemActive: { backgroundColor: colors.primary },
+  segText: { fontSize: font.small, fontWeight: '700', color: colors.textMuted },
+
   colorGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   swatchWrap: { width: '31%', alignItems: 'center', marginBottom: spacing.md },
   swatchLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '600', marginTop: 5, textAlign: 'center' },

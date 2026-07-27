@@ -79,6 +79,8 @@ export function Navigator() {
   const [tab, setTabState] = useState<TabName>('Home');
   const [stack, setStack] = useState<Route[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Tab, ze kterého jsme na aktuální tab přišli. Umožní zobrazit šipku zpět
+  // na Kartičkách/Focusu, když se tam uživatel proklikl z Domů.
   const insets = useSafeAreaInsets();
 
   const setTab = useCallback((t: TabName) => {

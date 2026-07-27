@@ -547,6 +547,10 @@ const cs: Dict = {
   'focus.stripRunning': 'Focus běží',
   'focus.stripPaused': 'Focus pozastaven',
   'focus.stripOpen': 'Otevřít',
+  'settings.mode': 'Vzhled',
+  'settings.mode.light': 'Světlý',
+  'settings.mode.dark': 'Tmavý',
+  'settings.mode.system': 'Systém',
 };
 
 const en: Dict = {
@@ -1080,6 +1084,10 @@ const en: Dict = {
   'focus.stripRunning': 'Focus running',
   'focus.stripPaused': 'Focus paused',
   'focus.stripOpen': 'Open',
+  'settings.mode': 'Appearance',
+  'settings.mode.light': 'Light',
+  'settings.mode.dark': 'Dark',
+  'settings.mode.system': 'System',
 };
 
 const de: Dict = {
@@ -1605,6 +1613,10 @@ const de: Dict = {
   'focus.stripRunning': 'Fokus läuft',
   'focus.stripPaused': 'Fokus pausiert',
   'focus.stripOpen': 'Öffnen',
+  'settings.mode': 'Darstellung',
+  'settings.mode.light': 'Hell',
+  'settings.mode.dark': 'Dunkel',
+  'settings.mode.system': 'System',
 };
 
 const es: Dict = {
@@ -2130,6 +2142,10 @@ const es: Dict = {
   'focus.stripRunning': 'Concentración activa',
   'focus.stripPaused': 'Concentración en pausa',
   'focus.stripOpen': 'Abrir',
+  'settings.mode': 'Apariencia',
+  'settings.mode.light': 'Claro',
+  'settings.mode.dark': 'Oscuro',
+  'settings.mode.system': 'Sistema',
 };
 
 const DICTS: Record<Lang, Dict> = { cs, en, de, es };

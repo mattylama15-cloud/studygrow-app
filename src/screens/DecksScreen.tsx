@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, font, radius, spacing, shadow, deckColors, deckEmojis } from '../theme';
-import { Button, Card, Field, Pill, ScreenScroll, SectionHeader } from '../components/ui';
+import { Button, Card, Field, Pill, ScreenScroll, SectionHeader, StackHeader } from '../components/ui';
 import { useApp } from '../state/AppContext';
 import { useNav } from '../navigation/Navigator';
 import { deckMastery, isDue } from '../srs';
@@ -36,14 +36,12 @@ export function DecksScreen() {
 
   return (
     <View style={{ flex: 1 }}>
+      <StackHeader
+        title={t('decks.title')}
+        subtitle={t('decks.summary', { d: state.decks.length, c: state.cards.length })}
+        onBack={() => nav.setTab('Home')}
+      />
       <ScreenScroll>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.h1}>{t('decks.title')}</Text>
-            <Text style={styles.sub}>{t('decks.summary', { d: state.decks.length, c: state.cards.length })}</Text>
-          </View>
-        </View>
-
         <FocusStrip />
 
         {/* Due summary — only shown when something is actually due */}

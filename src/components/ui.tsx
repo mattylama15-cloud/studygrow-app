@@ -158,14 +158,23 @@ export function EmptyState({ icon, title, subtitle }: { icon: keyof typeof Ionic
 }
 
 // ---- Stack screen header (with back button + language toggle) ----
-export function StackHeader({ title, onBack, right }: { title: string; onBack: () => void; right?: React.ReactNode }) {
+// Jednotná hlavička pro celou appku. `onBack` zobrazí šipku zpět; `subtitle`
+// přidá druhý řádek pod nadpis. Nadpis i šipka mají všude stejnou velikost.
+export function StackHeader({ title, subtitle, onBack, right }: {
+  title: string; subtitle?: string; onBack?: () => void; right?: React.ReactNode;
+}) {
   return (
     <View style={styles.stackHeader}>
-      <Pressable onPress={onBack} hitSlop={10} style={styles.backBtn}>
-        <Ionicons name="chevron-back" size={24} color={colors.text} />
-      </Pressable>
-      <Text style={styles.stackTitle} numberOfLines={1}>{title}</Text>
-      <View style={{ minWidth: 42, alignItems: 'flex-end' }}>{right}</View>
+      {onBack && (
+        <Pressable onPress={onBack} hitSlop={10} style={[styles.backBtn, { height: font.h1 + 8 }]}>
+          <Ionicons name="chevron-back" size={30} color={colors.text} />
+        </Pressable>
+      )}
+      <View style={{ flex: 1 }}>
+        <Text style={styles.stackTitle} numberOfLines={1}>{title}</Text>
+        {subtitle ? <Text style={styles.stackSubtitle} numberOfLines={1}>{subtitle}</Text> : null}
+      </View>
+      {right ? <View style={{ minWidth: 42, alignItems: 'flex-end' }}>{right}</View> : null}
     </View>
   );
 }
@@ -201,7 +210,10 @@ export const styles = StyleSheet.create({
   statIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statValue: { fontSize: font.h3, fontWeight: '800', color: colors.text },
   statLabel: { fontSize: font.tiny, color: colors.textMuted, fontWeight: '600' },
-  stackHeader: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: 6 },
-  backBtn: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
-  stackTitle: { flex: 1, fontSize: font.h3, fontWeight: '800', color: colors.text },
+  // Zarovnání nahoru: šipka pak leží na řádku nadpisu, ne uprostřed
+  // dvouřádkového bloku (nadpis + podtitul).
+  stackHeader: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.md, gap: 4 },
+  backBtn: { width: 36, alignItems: 'flex-start', justifyContent: 'center', marginLeft: -6 },
+  stackTitle: { fontSize: font.h1, fontWeight: '800', color: colors.text, lineHeight: font.h1 + 8 },
+  stackSubtitle: { fontSize: font.small, color: colors.textMuted, marginTop: 1 },
 });
