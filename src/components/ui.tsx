@@ -166,8 +166,8 @@ export function StackHeader({ title, subtitle, onBack, right }: {
   return (
     <View style={styles.stackHeader}>
       {onBack && (
-        <Pressable onPress={onBack} hitSlop={10} style={[styles.backBtn, { height: font.h1 + 8 }]}>
-          <Ionicons name="chevron-back" size={30} color={colors.text} />
+        <Pressable onPress={onBack} hitSlop={10} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={24} color={colors.text} style={{ marginLeft: -3 }} />
         </Pressable>
       )}
       <View style={{ flex: 1 }}>
@@ -213,7 +213,6 @@ export const styles = StyleSheet.create({
   // Zarovnání nahoru: šipka pak leží na řádku nadpisu, ne uprostřed
   // dvouřádkového bloku (nadpis + podtitul).
   stackHeader: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.md, gap: 4 },
-  backBtn: { width: 36, alignItems: 'flex-start', justifyContent: 'center', marginLeft: -6 },
-  stackTitle: { fontSize: font.h1, fontWeight: '800', color: colors.text, lineHeight: font.h1 + 8 },
+backBtn: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', marginRight: 10 },  stackTitle: { fontSize: font.h1, fontWeight: '800', color: colors.text, lineHeight: font.h1 + 8 },
   stackSubtitle: { fontSize: font.small, color: colors.textMuted, marginTop: 1 },
 });

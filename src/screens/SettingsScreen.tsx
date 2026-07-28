@@ -49,7 +49,7 @@ export function SettingsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <StackHeader title={t('settings.title')} onBack={nav.pop} />
+      <StackHeader title={t('settings.title')} onBack={() => nav.setTab('Home')} />
       <ScreenScroll contentStyle={{ paddingTop: 4 }}>
         {/* Profile */}
         <Text style={styles.section}>{t('settings.profile')}</Text>

@@ -13,7 +13,8 @@
           "photosPermission": "StudyGrow potřebuje přístup k fotkám, aby z nich přečetl tvé poznámky.",
           "cameraPermission": "StudyGrow potřebuje fotoaparát, abys mohl vyfotit sešit a převést ho na poznámky."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "ios": {
       "supportsTablet": true

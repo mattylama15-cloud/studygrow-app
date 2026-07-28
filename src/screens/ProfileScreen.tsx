@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, font, radius, spacing, shadow, gradients } from '../theme';
-import { Card, ScreenScroll, StatTile } from '../components/ui';
+import { Card, ScreenScroll, StatTile, StackHeader } from '../components/ui';
 import { useApp } from '../state/AppContext';
 import { useNav } from '../navigation/Navigator';
 import { formatMinutes, levelFromXp } from '../utils';
@@ -28,10 +28,9 @@ export function ProfileScreen() {
   const unlocked = achievements.filter((a) => a.done).length;
 
   return (
-    <ScreenScroll>
-      <View style={styles.headerRow}>
-        <Text style={styles.h1}>{t('profile.title')}</Text>
-      </View>
+    <View style={{ flex: 1 }}>
+      <StackHeader title={t('profile.title')} onBack={() => nav.setTab('Home')} />
+      <ScreenScroll>
 
       {/* identity card */}
       <LinearGradient colors={gradients.night as [string, string]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.idCard}>
@@ -80,6 +79,7 @@ export function ProfileScreen() {
         </View>
       </Card>
     </ScreenScroll>
+    </View>
   );
 }
 

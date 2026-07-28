@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, font, radius, spacing, shadow, gradients } from '../theme';
-import { useApp } from '../state/AppContext';
+import { useApp, isUntitledChat } from '../state/AppContext';
 import { useNav } from '../navigation/Navigator';
 import { tutorReply, AIError, resolveKey, AI_CAPS } from '../ai/client';
 import { pickImages } from '../ai/ocr';
@@ -99,7 +99,7 @@ export function TutorScreen() {
         <Pressable onPress={() => setHistoryOpen(true)} hitSlop={10} style={styles.menuBtn}>
           <Ionicons name="menu" size={26} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>{activeThread?.title || tr('tutor.title')}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{activeThread && isUntitledChat(activeThread.title) ? tr('tutor.newChat') : (activeThread?.title || tr('tutor.title'))}</Text>
       </View>
 
       {!hasKey && (
@@ -223,7 +223,7 @@ export function TutorScreen() {
                   return (
                     <View key={t.id} style={[styles.threadRow, isActive && styles.threadRowActive]}>
                       <Pressable style={{ flex: 1 }} onPress={() => { switchChatThread(t.id); setHistoryOpen(false); }}>
-                        <Text style={styles.threadTitle} numberOfLines={1}>{t.title}</Text>
+                        <Text style={styles.threadTitle} numberOfLines={1}>{isUntitledChat(t.title) ? tr('tutor.newChat') : t.title}</Text> 
                         <Text style={styles.threadPreview} numberOfLines={1}>{preview}</Text>
                       </Pressable>
                       <Pressable hitSlop={6} onPress={() => deleteChatThread(t.id)}>

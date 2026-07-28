@@ -47,7 +47,7 @@ export function FocusScreen() {
   const total = (timer.running ? timer.minutes : minutes) * 60;
   const displayRemaining = timer.running ? remaining : total;
   const progress = !timer.running ? 0 : 1 - displayRemaining / total;
-  const growth = !timer.running && status === 'idle' ? 0.06 : Math.sqrt(Math.max(0, progress));
+  const growth = !timer.running && status === 'idle' ? 0.02 : Math.max(0, progress);
 
   const start = () => {
     sessionStartRef.current = Date.now();
@@ -189,7 +189,7 @@ export function FocusScreen() {
             <Text style={styles.confirmSub}>{t('focus.giveUpSub')}</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: spacing.lg }}>
               <Button title={t('common.continue')} variant="secondary" onPress={() => setConfirmGiveUp(false)} style={{ flex: 1 }} />
-              <Button title={t('focus.giveUp')} variant="danger" onPress={() => { setConfirmGiveUp(false); giveUpTimer(); }} style={{ flex: 1 }} />
+              <Button title={t('focus.giveUp')} variant="danger" onPress={() => { setConfirmGiveUp(false); giveUpTimer(); setStatus('failed'); }} style={{ flex: 1 }} />
             </View>
           </View>
         </View>

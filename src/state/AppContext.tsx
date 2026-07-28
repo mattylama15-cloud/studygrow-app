@@ -25,7 +25,7 @@ const defaultSettings: Settings = {
   lang: 'en',
   dailyGoalMinutes: 60,
   hapticsEnabled: true,
-  focusTheme: 'house',
+  focusTheme: 'sakura',
   themeColor: 'green',
   adminPassHash: null,
   onboardingDone: false,
@@ -69,7 +69,7 @@ function reducer(state: AppState, action: Action): AppState {
 // i18n.ts importuje zpátky tenhle modul, takže na úrovni modulu by translate
 // ještě nemuselo být připravené.
 let _untitledTitles: Set<string> | null = null;
-function isUntitledChat(title: string): boolean {
+export function isUntitledChat(title: string): boolean {
   if (!_untitledTitles) {
     _untitledTitles = new Set<string>(
       (['cs', 'en', 'de', 'es'] as Lang[]).map((l) => translate(l, 'chat.newConversation')),
