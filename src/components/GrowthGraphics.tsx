@@ -38,10 +38,10 @@ function makeTree(source: any) {
   };
 }
 
-const SakuraGraphic = makeTree(require('../../assets/tree-sakura.mp4'));
-const MapleGraphic = makeTree(require('../../assets/tree-maple.mp4'));
-const OakGraphic = makeTree(require('../../assets/tree-oak.mp4'));
-const OliveGraphic = makeTree(require('../../assets/tree-olive.mp4'));
+const SakuraGraphic = makeTree(require('../../assets/tree-sakura.webm'));
+const MapleGraphic = makeTree(require('../../assets/tree-maple.webm'));
+const OakGraphic = makeTree(require('../../assets/tree-oak.webm'));
+const OliveGraphic = makeTree(require('../../assets/tree-olive.webm'));
 
 // ---------------- registry + dispatcher ----------------
 // `labelKey` je i18n klíč (použij ho v UI přes t()); `label` zůstává jako
