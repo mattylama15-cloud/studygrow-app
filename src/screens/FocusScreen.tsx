@@ -14,7 +14,7 @@ import { useT } from '../i18n';
 
 const GOAL_PRESETS = [30, 60, 90, 120];
 
-const PRESETS = [15, 25, 45, 60];
+const PRESETS = [5, 15, 25, 45, 60];
 
 type Status = 'idle' | 'running' | 'done' | 'failed';
 
