@@ -1,47 +1,69 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import React from 'react';
+import { View, Image, StyleSheet } from 'react-native';
 
 // Shared props for every "focus reward" visual.
 export type GrowthProps = { progress: number; failed?: boolean; size?: number };
 
 const clamp = (n: number, min = 0, max = 1) => Math.max(min, Math.min(max, n));
 
-// Každý strom je krátké video růstu (semenáček → dospělý). Nepřehrává se samo —
-// jeho pozice v čase se řídí `progress` (0→1) z focusu, takže strom "roste"
-// přesně podle toho, jak dlouho focus běží. Na konci focusu je strom dospělý.
-function makeTree(source: any) {
-  return function TreeVideo({ progress, size = 150 }: GrowthProps) {
-    const player = useVideoPlayer(source, (p) => {
-      p.loop = false;
-      p.muted = true;
-      p.pause();
-    });
+// Každý strom má 3 fáze růstu (semenáček → mladý → dospělý) jako obrázky
+// s průhledným pozadím. Fungují na všech zařízeních včetně iPhonu (na rozdíl
+// od videa s alfou, které Safari neumí). Mezi fázemi plynulý crossfade podle
+// `progress`, aby přechod nebyl skokový. Velikost rámce je stále stejná —
+// mění se jen strom, květináč drží na místě.
+type Phases = { seed: any; young: any; adult: any };
 
-    useEffect(() => {
-      const dur = player.duration;
-      if (!dur || isNaN(dur)) return;
-      // pozice ve videu = kolik procent focusu uplynulo
-      player.currentTime = clamp(progress) * dur;
-    }, [progress, player]);
+function makeTree(phases: Phases) {
+  return function TreeImage({ progress, size = 150 }: GrowthProps) {
+    const p = clamp(progress);
+
+    // Průhlednost každé fáze podle progresu — sousední fáze se prolínají.
+    // seed: plná do 0.25, mizí do 0.4
+    // young: náběh 0.25–0.4, plná do 0.6, mizí do 0.75
+    // adult: náběh 0.6–0.75, pak plná
+    const seedOp = 1 - clamp((p - 0.25) / 0.15);
+    const youngOp = clamp((p - 0.25) / 0.15) * (1 - clamp((p - 0.6) / 0.15));
+    const adultOp = clamp((p - 0.6) / 0.15);
+
+    const layer = (src: any, opacity: number, key: string) =>
+      opacity <= 0 ? null : (
+        <Image
+          key={key}
+          source={src}
+          style={[StyleSheet.absoluteFill, { width: size, height: size, opacity, resizeMode: 'contain' }]}
+        />
+      );
 
     return (
       <View style={{ width: size, height: size }}>
-        <VideoView
-          player={player}
-          style={{ width: size, height: size }}
-          contentFit="contain"
-          nativeControls={false}
-        />
+        {layer(phases.seed, seedOp, 'seed')}
+        {layer(phases.young, youngOp, 'young')}
+        {layer(phases.adult, adultOp, 'adult')}
       </View>
     );
   };
 }
 
-const SakuraGraphic = makeTree(require('../../assets/tree-sakura.webm'));
-const MapleGraphic = makeTree(require('../../assets/tree-maple.webm'));
-const OakGraphic = makeTree(require('../../assets/tree-oak.webm'));
-const OliveGraphic = makeTree(require('../../assets/tree-olive.webm'));
+const SakuraGraphic = makeTree({
+  seed: require('../../assets/tree-sakura-1.png'),
+  young: require('../../assets/tree-sakura-2.png'),
+  adult: require('../../assets/tree-sakura-3.png'),
+});
+const MapleGraphic = makeTree({
+  seed: require('../../assets/tree-maple-1.png'),
+  young: require('../../assets/tree-maple-2.png'),
+  adult: require('../../assets/tree-maple-3.png'),
+});
+const OakGraphic = makeTree({
+  seed: require('../../assets/tree-oak-1.png'),
+  young: require('../../assets/tree-oak-2.png'),
+  adult: require('../../assets/tree-oak-3.png'),
+});
+const OliveGraphic = makeTree({
+  seed: require('../../assets/tree-olive-1.png'),
+  young: require('../../assets/tree-olive-2.png'),
+  adult: require('../../assets/tree-olive-3.png'),
+});
 
 // ---------------- registry + dispatcher ----------------
 // `labelKey` je i18n klíč (použij ho v UI přes t()); `label` zůstává jako
