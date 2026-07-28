@@ -37,7 +37,7 @@
       "display": "standalone"
     },
     "experiments": {
-      "baseUrl": "/studygrow"
+      "baseUrl": "/studygrow-app"
     }
   }
 }
