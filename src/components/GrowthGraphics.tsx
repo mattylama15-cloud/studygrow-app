@@ -1,87 +1,102 @@
-import React from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Image, Platform } from 'react-native';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 // Shared props for every "focus reward" visual.
-export type GrowthProps = { progress: number; failed?: boolean; size?: number };
+export type GrowthProps = {
+  progress: number;
+  failed?: boolean;
+  size?: number;
+  running?: boolean;
+  durationSec?: number;
+};
 
 const clamp = (n: number, min = 0, max = 1) => Math.max(min, Math.min(max, n));
 
-// Každý strom má 3 fáze růstu (semenáček → mladý → dospělý) jako obrázky
-// s průhledným pozadím. Fungují na všech zařízeních včetně iPhonu (na rozdíl
-// od videa s alfou, které Safari neumí). Mezi fázemi plynulý crossfade podle
-// `progress`, aby přechod nebyl skokový. Velikost rámce je stále stejná —
-// mění se jen strom, květináč drží na místě.
-type Phases = { seed: any; young: any; adult: any };
+// Video růstu (plynulé, průhledné pozadí) — během focusu se přehrává a jeho
+// pozice se řídí `progress` (0→1), takže roste plynule po malých kouscích jako
+// video. Ve stavu KLIDU (idle / výsledek) video na webu neseekuje spolehlivě,
+// tak tam ukážeme statický snímek správné fáze.
+const VIDEOS: Record<string, any> = {
+  sakura: require('../../assets/tree-sakura.webm'),
+  maple: require('../../assets/tree-maple.webm'),
+  oak: require('../../assets/tree-oak.webm'),
+  olive: require('../../assets/tree-olive.webm'),
+};
 
-function makeTree(phases: Phases) {
-  return function TreeImage({ progress, size = 150 }: GrowthProps) {
-    const p = clamp(progress);
+// Statické snímky (semenáček … dospělý) pro idle a výsledek.
+const STILLS: Record<string, any[]> = {
+  sakura: [require('../../assets/tree-sakura-000.png'), require('../../assets/tree-sakura-030.png'), require('../../assets/tree-sakura-060.png'), require('../../assets/tree-sakura-090.png'), require('../../assets/tree-sakura-120.png')],
+  maple: [require('../../assets/tree-maple-000.png'), require('../../assets/tree-maple-030.png'), require('../../assets/tree-maple-060.png'), require('../../assets/tree-maple-090.png'), require('../../assets/tree-maple-120.png')],
+  oak: [require('../../assets/tree-oak-000.png'), require('../../assets/tree-oak-030.png'), require('../../assets/tree-oak-060.png'), require('../../assets/tree-oak-090.png'), require('../../assets/tree-oak-120.png')],
+  olive: [require('../../assets/tree-olive-000.png'), require('../../assets/tree-olive-030.png'), require('../../assets/tree-olive-060.png'), require('../../assets/tree-olive-090.png'), require('../../assets/tree-olive-120.png')],
+};
 
-    // Průhlednost každé fáze podle progresu — sousední fáze se prolínají.
-    // seed: plná do 0.25, mizí do 0.4
-    // young: náběh 0.25–0.4, plná do 0.6, mizí do 0.75
-    // adult: náběh 0.6–0.75, pak plná
-    const seedOp = 1 - clamp((p - 0.25) / 0.15);
-    const youngOp = clamp((p - 0.25) / 0.15) * (1 - clamp((p - 0.6) / 0.15));
-    const adultOp = clamp((p - 0.6) / 0.15);
-
-    const layer = (src: any, opacity: number, key: string) =>
-      opacity <= 0 ? null : (
-        <Image
-          key={key}
-          source={src}
-          style={[StyleSheet.absoluteFill, { width: size, height: size, opacity, resizeMode: 'contain' }]}
-        />
-      );
-
-    return (
-      <View style={{ width: size, height: size }}>
-        {layer(phases.seed, seedOp, 'seed')}
-        {layer(phases.young, youngOp, 'young')}
-        {layer(phases.adult, adultOp, 'adult')}
-      </View>
-    );
-  };
+function stillFor(themeId: string, progress: number) {
+  const frames = STILLS[themeId] ?? STILLS.sakura;
+  return frames[Math.round(clamp(progress) * (frames.length - 1))];
 }
 
-const SakuraGraphic = makeTree({
-  seed: require('../../assets/tree-sakura-1.png'),
-  young: require('../../assets/tree-sakura-2.png'),
-  adult: require('../../assets/tree-sakura-3.png'),
-});
-const MapleGraphic = makeTree({
-  seed: require('../../assets/tree-maple-1.png'),
-  young: require('../../assets/tree-maple-2.png'),
-  adult: require('../../assets/tree-maple-3.png'),
-});
-const OakGraphic = makeTree({
-  seed: require('../../assets/tree-oak-1.png'),
-  young: require('../../assets/tree-oak-2.png'),
-  adult: require('../../assets/tree-oak-3.png'),
-});
-const OliveGraphic = makeTree({
-  seed: require('../../assets/tree-olive-1.png'),
-  young: require('../../assets/tree-olive-2.png'),
-  adult: require('../../assets/tree-olive-3.png'),
-});
+// WEB video: přímý HTML <video> element, currentTime řízen progresem.
+function WebVideo({ src, progress, size }: { src: string; progress: number; size: number }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const apply = () => {
+      if (v.duration && !isNaN(v.duration)) v.currentTime = clamp(progress) * v.duration;
+    };
+    if (v.readyState >= 1) apply();
+    else v.addEventListener('loadedmetadata', apply, { once: true });
+  }, [progress]);
+  return (
+    // @ts-ignore web element
+    <video ref={ref} src={src} muted playsInline preload="auto"
+      style={{ width: size, height: size, objectFit: 'contain' }} />
+  );
+}
+
+// NATIV video: expo-video.
+function NativeVideo({ source, progress, size }: { source: any; progress: number; size: number }) {
+  const player = useVideoPlayer(source, (p) => { p.loop = false; p.muted = true; p.pause(); });
+  useEffect(() => {
+    const dur = player.duration;
+    if (!dur || isNaN(dur)) return;
+    try { player.currentTime = clamp(progress) * dur; } catch (e) {}
+  }, [progress, player]);
+  return <VideoView player={player} style={{ width: size, height: size }} contentFit="contain" nativeControls={false} />;
+}
 
 // ---------------- registry + dispatcher ----------------
-// `labelKey` je i18n klíč (použij ho v UI přes t()); `label` zůstává jako
-// český fallback, aby se nerozbila místa, která ho zatím čtou přímo.
-export type GrowthTheme = { id: string; label: string; labelKey: string; emoji: string; Component: React.ComponentType<GrowthProps> };
+export type GrowthTheme = { id: string; label: string; labelKey: string; emoji: string };
 
 export const GROWTH_THEMES: GrowthTheme[] = [
-  { id: 'sakura', label: 'Sakura', labelKey: 'theme.sakura', emoji: '🌸', Component: SakuraGraphic },
-  { id: 'maple', label: 'Javor', labelKey: 'theme.maple', emoji: '🍁', Component: MapleGraphic },
-  { id: 'oak', label: 'Dub', labelKey: 'theme.oak', emoji: '🌳', Component: OakGraphic },
-  { id: 'olive', label: 'Olivovník', labelKey: 'theme.olive', emoji: '🫒', Component: OliveGraphic },
+  { id: 'sakura', label: 'Sakura', labelKey: 'theme.sakura', emoji: '🌸' },
+  { id: 'maple', label: 'Javor', labelKey: 'theme.maple', emoji: '🍁' },
+  { id: 'oak', label: 'Dub', labelKey: 'theme.oak', emoji: '🌳' },
+  { id: 'olive', label: 'Olivovník', labelKey: 'theme.olive', emoji: '🫒' },
 ];
 
 export function getTheme(id: string | undefined): GrowthTheme {
   return GROWTH_THEMES.find((t) => t.id === id) ?? GROWTH_THEMES[0];
 }
 
-export function GrowthGraphic({ themeId, ...props }: GrowthProps & { themeId: string }) {
-  const T = getTheme(themeId).Component;
-  return <T {...props} />;
+export function GrowthGraphic({ themeId, progress, size = 150, running }: GrowthProps & { themeId: string }) {
+  const id = getTheme(themeId).id;
+  // Video jen když focus běží (plynulý růst). Jinak statický snímek.
+  if (running) {
+    return (
+      <View style={{ width: size, height: size }}>
+        {Platform.OS === 'web'
+          ? <WebVideo src={VIDEOS[id]} progress={progress} size={size} />
+          : <NativeVideo source={VIDEOS[id]} progress={progress} size={size} />}
+      </View>
+    );
+  }
+  return <Image source={stillFor(id, progress)} style={{ width: size, height: size, resizeMode: 'contain' }} fadeDuration={0} />;
+}
+
+// Statický snímek výsledku — strom v té fázi, kam dorostl.
+export function GrowthStill({ themeId, progress, size = 100 }: { themeId: string; progress: number; size?: number }) {
+  return <Image source={stillFor(getTheme(themeId).id, progress)} style={{ width: size, height: size, resizeMode: 'contain' }} />;
 }

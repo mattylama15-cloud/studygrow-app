@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { colors, font, radius, spacing, shadow, gradients } from '../theme';
 import { Button, Card, ScreenScroll, StackHeader } from '../components/ui';
 import { ProgressRing } from '../components/ProgressRing';
-import { GrowthGraphic, getTheme } from '../components/GrowthGraphics';
+import { GrowthGraphic, GrowthStill, getTheme } from '../components/GrowthGraphics';
 import { useApp } from '../state/AppContext';
 import { useFocusTimer } from '../state/FocusTimer';
 import { useNav } from '../navigation/Navigator';
@@ -14,7 +14,7 @@ import { useT } from '../i18n';
 
 const GOAL_PRESETS = [30, 60, 90, 120];
 
-const PRESETS = [5, 15, 25, 45, 60];
+const PRESETS = [2, 5, 15, 25, 45, 60];
 
 type Status = 'idle' | 'running' | 'done' | 'failed';
 
@@ -29,6 +29,7 @@ export function FocusScreen() {
   const [status, setStatus] = useState<Status>(timer.running ? 'running' : 'idle');
   const [subject] = useState('');
   const [confirmGiveUp, setConfirmGiveUp] = useState(false);
+  const [resultGrowth, setResultGrowth] = useState(1);
   const [goalOpen, setGoalOpen] = useState(false);
   const sessionStartRef = useRef<number>(0);
   // Zbývající čas v okamžiku ukončení — drží se v refu, aby ho callback
@@ -47,7 +48,33 @@ export function FocusScreen() {
   const total = (timer.running ? timer.minutes : minutes) * 60;
   const displayRemaining = timer.running ? remaining : total;
   const progress = !timer.running ? 0 : 1 - displayRemaining / total;
-  const growth = !timer.running && status === 'idle' ? 0.02 : Math.max(0, progress);
+  const growthTarget =
+    status === 'done' ? 1
+    : !timer.running && status === 'idle' ? 0.02
+    : Math.max(0, progress);
+
+  // Plynulý růst: `growthTarget` skáče po sekundách (jak tiká timer), tak ho
+  // 30×/s plynule dojíždíme, aby video rostlo hladce, ne trhaně.
+  const [growth, setGrowth] = useState(0.02);
+  const growthRef = useRef(0.02);
+  const targetRef = useRef(0.02);
+  targetRef.current = growthTarget;
+  useEffect(() => {
+    let raf: any;
+    const tick = () => {
+      const cur = growthRef.current;
+      const tgt = targetRef.current;
+      const next = cur + (tgt - cur) * 0.08;
+      const val = Math.abs(tgt - cur) < 0.0005 ? tgt : next;
+      if (val !== cur) {
+        growthRef.current = val;
+        setGrowth(val);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   const start = () => {
     sessionStartRef.current = Date.now();
@@ -58,6 +85,10 @@ export function FocusScreen() {
       // odpracovaných minut započítal i čas strávený na pauze.
       const leftSec = leftAtEndRef.current;
       const completedMinutes = completed ? minutes : Math.max(0, Math.round((minutes * 60 - leftSec) / 60));
+      // Kolik strom dorostl při ukončení (0–1): dokončeno = 1, vzdáno dřív =
+      // poměr odpracovaného času. Použije se pro výsledný obrázek stromu.
+      const achieved = completed ? 1 : Math.max(0.02, Math.min(1, (minutes * 60 - leftSec) / (minutes * 60)));
+      setResultGrowth(achieved);
       addSession({
         startedAt: sessionStartRef.current,
         plannedMinutes: minutes,
@@ -102,7 +133,7 @@ export function FocusScreen() {
           >
             <View style={{ alignItems: 'center' }}>
               <View style={{ opacity: paused ? 0.5 : 1 }}>
-                <GrowthGraphic themeId={state.settings.focusTheme} progress={growth} failed={status === 'failed'} size={150} />
+                <GrowthGraphic themeId={state.settings.focusTheme} progress={growth} failed={status === 'failed'} running={status === 'running'} size={150} />
               </View>
               <Text style={[styles.clock, paused && { color: colors.amber }]}>{formatClock(displayRemaining)}</Text>
               <Text style={[styles.clockLabel, paused && { color: colors.amber }]}>
@@ -140,7 +171,7 @@ export function FocusScreen() {
         {(status === 'done' || status === 'failed') && (
           <View style={{ gap: 10 }}>
             <Card style={{ alignItems: 'center', gap: 6, paddingVertical: spacing.lg }}>
-              <GrowthGraphic themeId={state.settings.focusTheme} progress={status === 'done' ? 1 : 0.45} failed={status === 'failed'} size={100} />
+              <GrowthStill themeId={state.settings.focusTheme} progress={resultGrowth} size={100} />
               <Text style={styles.resultTitle}>{status === 'done' ? t('focus.greatWork') : t('focus.tryAgain')}</Text>
               <Text style={styles.resultSub}>
                 {status === 'done' ? t('focus.doneSub', { what: t(theme.labelKey).toLowerCase(), n: minutes }) : t('focus.failedSub')}
